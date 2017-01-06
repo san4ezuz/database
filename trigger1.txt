@@ -1,0 +1,39 @@
+AS
+begin
+  if (new.pr_id in (
+  select prizyvnik.pr_id from prizyvnik,medicaldata
+  where medicaldata.pr_id=prizyvnik.pr_id and group_id>=4 and md_id not in (
+  SELECT m2.md_id
+   from medicaldata as m1, medicaldata as m2
+   where (m1.pr_id = m2.pr_id
+   AND m1.medical_date > m2.medical_date)) )
+    )
+   then  exception warning1;
+end
+
+CREATE SEQUENCE LISTDOC_GEN;
+ALTER SEQUENCE LISTDOC_GEN RESTART WITH 12;
+SET TERM ^ ;
+CREATE OR ALTER TRIGGER LISTDOC_GEN FOR LISTDOCTOR
+ACTIVE BEFORE INSERT POSITION 0
+AS
+BEGIN
+   IF (NEW.LISTDOC_ID IS NULL) THEN
+   NEW.LISTDOC_ID = GEN_ID(LISTDOC_GEN, 1);
+END
+^
+SET TERM ; ^
+
+
+CREATE EXCEPTION ERROR_REC 'ERROR: cannot delete!'^
+SET TERM ^ ;
+CREATE OR ALTER TRIGGER check_rec FOR PRIZYVNIK before delete or update
+AS
+BEGIN
+	if (OLD.privatedata_id IN (select pd_id from privatedata)) then
+	EXCEPTION ERROR_REC;
+END
+^
+SET TERM ; ^
+
+
